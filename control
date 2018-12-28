@@ -1,0 +1,9 @@
+Package: com.gilshahar7.topicprominent
+Name: TopicProminent
+Depends: mobilesubstrate
+Version: 1.0
+Architecture: iphoneos-arm
+Description: Show notification subtitles on the lockscreen and banners.
+Maintainer: gilshahar7
+Author: gilshahar7
+Section: Tweaks

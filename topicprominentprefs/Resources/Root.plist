@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Settings</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSStaticTextCell</string>
+			<key>label</key>
+			<string>Lockscreen behavior</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>default</key>
+			<integer>2</integer>
+			<key>defaults</key>
+			<string>com.gilshahar7.topicprominentprefs</string>
+			<key>PostNotification</key>
+			<string>com.gilshahar7.topicprominentprefs.settingschanged</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>key</key>
+			<string>lockscreen</string>
+			<key>validTitles</key>
+			<array>
+				<string>Off</string>
+				<string>Add</string>
+				<string>Replace</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>1</integer>
+				<integer>2</integer>
+				<integer>3</integer>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>[Add] means showing subtitle as a new line between app name and message text.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSStaticTextCell</string>
+			<key>label</key>
+			<string>Banners behavior</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>default</key>
+			<integer>2</integer>
+			<key>defaults</key>
+			<string>com.gilshahar7.topicprominentprefs</string>
+			<key>PostNotification</key>
+			<string>com.gilshahar7.topicprominentprefs.settingschanged</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>key</key>
+			<string>banners</string>
+			<key>validTitles</key>
+			<array>
+				<string>Off</string>
+				<string>Add</string>
+				<string>Replace</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>1</integer>
+				<integer>2</integer>
+				<integer>3</integer>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>[Replace] means replacing the app name line with subtitle.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Sometimes a notification is bundled by several notifications and will only show you for example "You have 3 new Twitter notifications". This tweak will add subtitle of the latest one it bundled to it. You can prevent this kind of notification from modified by switching this option off.</string>
+
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.gilshahar7.topicprominentprefs</string>
+			<key>key</key>
+			<string>disablebundled</string>
+			<key>label</key>
+			<string>Affect bundled notifications</string>
+		</dict>
+
+	</array>
+	<key>title</key>
+	<string>TopicProminent</string>
+</dict>
+</plist>
