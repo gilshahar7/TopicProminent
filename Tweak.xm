@@ -68,14 +68,15 @@
 %hook SBBannerContainerViewController
 -(void)setBannerContext:(id)arg1 withReplaceReason:(int)arg2 completion:(id)arg3{
 	%orig(arg1,arg2,arg3);
-	
-	NSString *myTitle = [self _bulletin].content.title;
-	SBDefaultBannerView *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
-	SBDefaultBannerTextView *myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
-	if(myTitle && ![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"]){
-		[myBannerTextView doodbullet:myTitle];
-		//[self _bulletin].content.subtitle = myTitle;
-		//[self _bulletin].content.title = nil;
+	if(![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"]){
+		NSString *myTitle = [self _bulletin].content.title;
+		SBDefaultBannerView *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
+		SBDefaultBannerTextView *myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
+		if(myTitle){
+			[myBannerTextView doodbullet:myTitle];
+			//[self _bulletin].content.subtitle = myTitle;
+			//[self _bulletin].content.title = nil;
+		}
 	}
 	
 }
