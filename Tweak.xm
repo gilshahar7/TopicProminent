@@ -1,10 +1,10 @@
 #define PLIST_PATH @"/var/mobile/Library/Preferences/com.gilshahar7.topicprominentprefs.plist"
 
 @interface SBLockScreenBulletinCell
-@property (nonatomic, assign) NSString *primaryText;
-@property (nonatomic, assign) NSString *subtitleText;
-@property (nonatomic, assign) NSString *secondaryText;
-@property (nonatomic, assign) NSString *savedTitle;
+@property (nonatomic, retain) NSString *primaryText;
+@property (nonatomic, retain) NSString *subtitleText;
+@property (nonatomic, retain) NSString *secondaryText;
+@property (nonatomic, retain) NSString *savedTitle;
 -(void)doodlockscreen:(NSString *)title;
 @end
 
@@ -13,13 +13,13 @@
 @end
 
 @interface BBContent
-@property (nonatomic, assign) NSString *title;
-@property (nonatomic, assign) NSString *subtitle;
+@property (nonatomic, retain) NSString *title;
+@property (nonatomic, retain) NSString *subtitle;
 @end
 
 @interface BBBulletin
-@property (nonatomic, assign) BBContent *content;
-@property (nonatomic, assign) NSString *section;
+@property (nonatomic, retain) BBContent *content;
+@property (nonatomic, retain) NSString *section;
 @end
 
 @interface SBLockScreenNotificationListController
@@ -27,10 +27,10 @@
 @end
 
 @interface SBDefaultBannerTextView
-@property (nonatomic, assign) NSString *primaryText;
-@property (nonatomic, assign) NSString *subtitleText;
-@property (nonatomic, assign) NSString *secondaryText;
-@property (nonatomic, assign) NSString *savedTitlebullet;
+@property (nonatomic, retain) NSString *primaryText;
+@property (nonatomic, retain) NSString *subtitleText;
+@property (nonatomic, retain) NSString *secondaryText;
+@property (nonatomic, retain) NSString *savedTitlebullet;
 -(void)doodbullet:(NSString *)title;
 @end
 
@@ -41,11 +41,11 @@
 @end
 
 @interface SBBannerContainerView
-@property (nonatomic, assign) SBBannerContextView *bannerView;
+@property (nonatomic, retain) SBBannerContextView *bannerView;
 @end
 
 @interface SBBannerContainerViewController
-@property (nonatomic, assign) SBBannerContainerView *view;
+@property (nonatomic, retain) SBBannerContainerView *view;
 -(BBBulletin *)_bulletin;
 @end
 
@@ -53,14 +53,18 @@
 -(void)_addItem:(id)arg1 forBulletin:(id)arg2 playLightsAndSirens:(BOOL)arg3 withReply:(id)arg4{
 	%orig(arg1,arg2,arg3,arg4);
 	NSString *myTitle = [self _firstBulletin].content.title;
-	SBLockScreenBulletinCell *myCell = [MSHookIvar<SBLockScreenNotificationListView *>(self, "_notificationView") visibleNotificationCells][0];
-	if(myTitle && ![[self _firstBulletin].section isEqualToString:@"com.apple.MobileSMS"]){
-		//myCell.primaryText = myTitle;
-		[myCell doodlockscreen:myTitle];
-		//[self _firstBulletin].content.subtitle = myTitle;
-		//[self _firstBulletin].content.title = nil;
+	SBLockScreenNotificationListView *notificationView = MSHookIvar<SBLockScreenNotificationListView *>(self, "_notificationView");
+	if(notificationView){
+		if([[notificationView visibleNotificationCells] count] > 0){
+			SBLockScreenBulletinCell *myCell = [notificationView visibleNotificationCells][0];
+			if(myTitle && ![[self _firstBulletin].section isEqualToString:@"com.apple.MobileSMS"]){
+				//myCell.primaryText = myTitle;
+				[myCell doodlockscreen:myTitle];
+				//[self _firstBulletin].content.subtitle = myTitle;
+				//[self _firstBulletin].content.title = nil;
+			}
+		}
 	}
-
 }
 %end
 
@@ -71,9 +75,14 @@
 	if(![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"]){
 		NSString *myTitle = [self _bulletin].content.title;
 		SBDefaultBannerView *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
-		SBDefaultBannerTextView *myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
+		SBDefaultBannerTextView *myBannerTextView;
+		if(myBannerView){
+			myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
+		}
 		if(myTitle){
-			[myBannerTextView doodbullet:myTitle];
+			if(myBannerTextView){
+				[myBannerTextView doodbullet:myTitle];
+			}
 			//[self _bulletin].content.subtitle = myTitle;
 			//[self _bulletin].content.title = nil;
 		}
