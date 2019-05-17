@@ -6,6 +6,7 @@ TopicProminentPrefs_FILES = TPPRootListController.m
 TopicProminentPrefs_INSTALL_PATH = /Library/PreferenceBundles
 TopicProminentPrefs_FRAMEWORKS = UIKit
 TopicProminentPrefs_PRIVATE_FRAMEWORKS = Preferences
+TopicProminentPrefs_CFLAGS = -fobjc-arc
 
 
 include $(THEOS_MAKE_PATH)/bundle.mk
