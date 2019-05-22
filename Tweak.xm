@@ -70,12 +70,12 @@
 
 
 %hook SBBannerContainerViewController
--(void)setBannerContext:(id)arg1 withReplaceReason:(int)arg2 completion:(id)arg3{
-	%orig(arg1,arg2,arg3);
-	if(![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"]){
-		NSString *myTitle = [self _bulletin].content.title;
-		SBDefaultBannerView *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
-		SBDefaultBannerTextView *myBannerTextView;
+-(void)setBannerContext:(id)arg1 withReplaceReason:(int)arg2 completion:(id)arg3 {
+	%orig;
+	if(![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"] && [self _bulletin] && self.view.bannerView) {
+		NSString *myTitle = [NSString stringWithString:[self _bulletin].content.title];
+		SBDefaultBannerView __weak *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
+		SBDefaultBannerTextView __weak *myBannerTextView;
 		if(myBannerView){
 			myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
 		}
@@ -92,7 +92,7 @@
 %end
 
 %hook SBLockScreenBulletinCell
-%property NSString *savedTitle;
+%property (nonatomic, strong) NSString *savedTitle;
 %new
 -(void)doodlockscreen:(NSString *)title{
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
@@ -118,10 +118,15 @@
 		[self doodlockscreen:self.savedTitle];
 	}
 }
+
+- (void)prepareForReuse {
+	self.savedTitle = nil;
+	%orig;
+}
 %end
 
 %hook SBDefaultBannerTextView
-%property NSString *savedTitlebullet;
+%property (nonatomic, strong) NSString *savedTitlebullet;
 %new
 -(void)doodbullet:(NSString *)title{
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
