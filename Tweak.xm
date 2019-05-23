@@ -73,18 +73,21 @@
 -(void)setBannerContext:(id)arg1 withReplaceReason:(int)arg2 completion:(id)arg3 {
 	%orig;
 	if(![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"] && [self _bulletin] && self.view.bannerView) {
-		NSString *myTitle = [NSString stringWithString:[self _bulletin].content.title];
-		SBDefaultBannerView __weak *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
-		SBDefaultBannerTextView __weak *myBannerTextView;
-		if(myBannerView){
-			myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
-		}
-		if(myTitle){
-			if(myBannerTextView){
-				[myBannerTextView doodbullet:myTitle];
+		NSString __weak *contentTitle = [self _bulletin].content.title;
+		if (contentTitle) {
+			NSString *myTitle = [NSString stringWithString:contentTitle];
+			SBDefaultBannerView __weak *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
+			SBDefaultBannerTextView __weak *myBannerTextView;
+			if(myBannerView){
+				myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
 			}
-			//[self _bulletin].content.subtitle = myTitle;
-			//[self _bulletin].content.title = nil;
+			if(myTitle){
+				if(myBannerTextView){
+					[myBannerTextView doodbullet:myTitle];
+				}
+				//[self _bulletin].content.subtitle = myTitle;
+				//[self _bulletin].content.title = nil;
+			}
 		}
 	}
 	
