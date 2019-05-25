@@ -10,6 +10,9 @@
 
 @interface SBLockScreenNotificationListView
 -(NSArray *)visibleNotificationCells;
+-(id)_activeBulletinForIndexPath:(id)arg1 ;
+-(void)tableView:(id)arg1 willDisplayCell:(id)arg2 forRowAtIndexPath:(id)arg3 ;
+-(id)tableView:(id)arg1 cellForRowAtIndexPath:(id)arg2 ;
 @end
 
 @interface BBContent
@@ -30,7 +33,7 @@
 @property (nonatomic, strong) NSString *primaryText;
 @property (nonatomic, strong) NSString *subtitleText;
 @property (nonatomic, strong) NSString *secondaryText;
-@property (nonatomic, strong) NSString *savedTitlebullet;
+@property (nonatomic, copy) NSString *savedTitlebullet;
 -(void)doodbullet:(NSString *)title;
 @end
 
@@ -49,21 +52,39 @@
 -(BBBulletin *)_bulletin;
 @end
 
-%hook SBLockScreenNotificationListController
--(void)_addItem:(id)arg1 forBulletin:(id)arg2 playLightsAndSirens:(BOOL)arg3 withReply:(id)arg4{
-	%orig(arg1,arg2,arg3,arg4);
-	NSString *myTitle = [self _firstBulletin].content.title;
-	SBLockScreenNotificationListView *notificationView = MSHookIvar<SBLockScreenNotificationListView *>(self, "_notificationView");
-	if(notificationView){
-		if([[notificationView visibleNotificationCells] count] > 0){
-			SBLockScreenBulletinCell *myCell = [notificationView visibleNotificationCells][0];
-			if(myTitle && ![[self _firstBulletin].section isEqualToString:@"com.apple.MobileSMS"]){
-				//myCell.primaryText = myTitle;
+// %hook SBLockScreenNotificationListController
+// -(void)_addItem:(id)arg1 forBulletin:(id)arg2 playLightsAndSirens:(BOOL)arg3 withReply:(id)arg4{
+// 	%orig(arg1,arg2,arg3,arg4);
+// 	NSString *myTitle = [self _firstBulletin].content.title;
+// 	SBLockScreenNotificationListView *notificationView = MSHookIvar<SBLockScreenNotificationListView *>(self, "_notificationView");
+// 	if(notificationView){
+// 		if([[notificationView visibleNotificationCells] count] > 0){
+// 			SBLockScreenBulletinCell *myCell = [notificationView visibleNotificationCells][0];
+// 			if(myTitle && ![[self _firstBulletin].section isEqualToString:@"com.apple.MobileSMS"]){
+// 				//myCell.primaryText = myTitle;
+// 				[myCell doodlockscreen:myTitle];
+// 				//[self _firstBulletin].content.subtitle = myTitle;
+// 				//[self _firstBulletin].content.title = nil;
+// 			}
+// 		}
+// 	}
+// }
+// %end
+
+%hook SBLockScreenNotificationListView
+-(void)tableView:(id)arg1 willDisplayCell:(id)arg2 forRowAtIndexPath:(id)arg3 {
+	%orig;
+	if ([arg2 isKindOfClass: %c(SBLockScreenBulletinCell)]) {
+		SBLockScreenBulletinCell *myCell = (SBLockScreenBulletinCell*)arg2;
+		BBBulletin *bulletin = [self _activeBulletinForIndexPath:arg3];
+		NSString __weak *contentTitle = bulletin.content.title;
+		if (contentTitle) {
+			NSString *myTitle = [NSString stringWithString: contentTitle];
+			if (myTitle && ![bulletin.section isEqualToString:@"com.apple.MobileSMS"]) {
 				[myCell doodlockscreen:myTitle];
-				//[self _firstBulletin].content.subtitle = myTitle;
-				//[self _firstBulletin].content.title = nil;
 			}
 		}
+
 	}
 }
 %end
@@ -93,7 +114,7 @@
 %end
 
 %hook SBLockScreenBulletinCell
-%property (strong) NSString *savedTitle;
+%property (copy) NSString *savedTitle;
 %new
 -(void)doodlockscreen:(NSString *)title{
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
@@ -118,14 +139,14 @@
 	}
 }
 
-// - (void)prepareForReuse {
-// 	self.savedTitle = nil;
-// 	%orig;
-// }
+- (void)prepareForReuse {
+	self.savedTitle = nil;
+	%orig;
+}
 %end
 
 %hook SBDefaultBannerTextView
-%property (strong) NSString *savedTitlebullet;
+%property (copy) NSString *savedTitlebullet;
 %new
 -(void)doodbullet:(NSString *)title{
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
