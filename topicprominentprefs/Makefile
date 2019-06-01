@@ -1,4 +1,4 @@
-ARCHS = arm64 armv7
+ARCHS = arm64 armv7 armv7s
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = TopicProminentPrefs
