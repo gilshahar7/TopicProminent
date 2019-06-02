@@ -1,0 +1,4 @@
+.theos
+packages/*debug_iphoneos-arm.deb
+*.log
+*.crash

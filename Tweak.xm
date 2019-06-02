@@ -1,25 +1,28 @@
 #define PLIST_PATH @"/var/mobile/Library/Preferences/com.gilshahar7.topicprominentprefs.plist"
 
 @interface SBLockScreenBulletinCell
-@property (nonatomic, retain) NSString *primaryText;
-@property (nonatomic, retain) NSString *subtitleText;
-@property (nonatomic, retain) NSString *secondaryText;
-@property (nonatomic, retain) NSString *savedTitle;
+@property (nonatomic, strong) NSString *primaryText;
+@property (nonatomic, strong) NSString *subtitleText;
+@property (nonatomic, strong) NSString *secondaryText;
+@property (nonatomic, strong) NSString *savedTitle;
 -(void)doodlockscreen:(NSString *)title;
 @end
 
 @interface SBLockScreenNotificationListView
 -(NSArray *)visibleNotificationCells;
+-(id)_activeBulletinForIndexPath:(id)arg1 ;
+-(void)tableView:(id)arg1 willDisplayCell:(id)arg2 forRowAtIndexPath:(id)arg3 ;
+-(id)tableView:(id)arg1 cellForRowAtIndexPath:(id)arg2 ;
 @end
 
 @interface BBContent
-@property (nonatomic, retain) NSString *title;
-@property (nonatomic, retain) NSString *subtitle;
+@property (nonatomic, strong) NSString *title;
+@property (nonatomic, strong) NSString *subtitle;
 @end
 
 @interface BBBulletin
-@property (nonatomic, retain) BBContent *content;
-@property (nonatomic, retain) NSString *section;
+@property (nonatomic, strong) BBContent *content;
+@property (nonatomic, strong) NSString *section;
 @end
 
 @interface SBLockScreenNotificationListController
@@ -27,10 +30,10 @@
 @end
 
 @interface SBDefaultBannerTextView
-@property (nonatomic, retain) NSString *primaryText;
-@property (nonatomic, retain) NSString *subtitleText;
-@property (nonatomic, retain) NSString *secondaryText;
-@property (nonatomic, retain) NSString *savedTitlebullet;
+@property (nonatomic, strong) NSString *primaryText;
+@property (nonatomic, strong) NSString *subtitleText;
+@property (nonatomic, strong) NSString *secondaryText;
+@property (nonatomic, copy) NSString *savedTitlebullet;
 -(void)doodbullet:(NSString *)title;
 @end
 
@@ -41,50 +44,50 @@
 @end
 
 @interface SBBannerContainerView
-@property (nonatomic, retain) SBBannerContextView *bannerView;
+@property (nonatomic, strong) SBBannerContextView *bannerView;
 @end
 
 @interface SBBannerContainerViewController
-@property (nonatomic, retain) SBBannerContainerView *view;
+@property (nonatomic, strong) SBBannerContainerView *view;
 -(BBBulletin *)_bulletin;
 @end
 
-%hook SBLockScreenNotificationListController
--(void)_addItem:(id)arg1 forBulletin:(id)arg2 playLightsAndSirens:(BOOL)arg3 withReply:(id)arg4{
-	%orig(arg1,arg2,arg3,arg4);
-	NSString *myTitle = [self _firstBulletin].content.title;
-	SBLockScreenNotificationListView *notificationView = MSHookIvar<SBLockScreenNotificationListView *>(self, "_notificationView");
-	if(notificationView){
-		if([[notificationView visibleNotificationCells] count] > 0){
-			SBLockScreenBulletinCell *myCell = [notificationView visibleNotificationCells][0];
-			if(myTitle && ![[self _firstBulletin].section isEqualToString:@"com.apple.MobileSMS"]){
-				//myCell.primaryText = myTitle;
+%hook SBLockScreenNotificationListView
+-(void)tableView:(id)arg1 willDisplayCell:(id)arg2 forRowAtIndexPath:(id)arg3 {
+	%orig;
+	if ([arg2 isKindOfClass: %c(SBLockScreenBulletinCell)]) {
+		SBLockScreenBulletinCell *myCell = (SBLockScreenBulletinCell*)arg2;
+		BBBulletin *bulletin = [self _activeBulletinForIndexPath:arg3];
+		NSString __weak *contentTitle = bulletin.content.title;
+		if (contentTitle) {
+			NSString *myTitle = [NSString stringWithString: contentTitle];
+			if (myTitle && ![bulletin.section isEqualToString:@"com.apple.MobileSMS"]) {
 				[myCell doodlockscreen:myTitle];
-				//[self _firstBulletin].content.subtitle = myTitle;
-				//[self _firstBulletin].content.title = nil;
 			}
 		}
+
 	}
 }
 %end
 
 
 %hook SBBannerContainerViewController
--(void)setBannerContext:(id)arg1 withReplaceReason:(int)arg2 completion:(id)arg3{
-	%orig(arg1,arg2,arg3);
-	if(![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"]){
-		NSString *myTitle = [self _bulletin].content.title;
-		SBDefaultBannerView *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
-		SBDefaultBannerTextView *myBannerTextView;
-		if(myBannerView){
-			myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
-		}
-		if(myTitle){
-			if(myBannerTextView){
-				[myBannerTextView doodbullet:myTitle];
+-(void)setBannerContext:(id)arg1 withReplaceReason:(int)arg2 completion:(id)arg3 {
+	%orig;
+	if(![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"] && [self _bulletin] && self.view.bannerView) {
+		NSString __weak *contentTitle = [self _bulletin].content.title;
+		if (contentTitle) {
+			NSString *myTitle = [NSString stringWithString:contentTitle];
+			SBDefaultBannerView __weak *myBannerView = MSHookIvar<SBDefaultBannerView *>(self.view.bannerView, "_contentView");
+			SBDefaultBannerTextView __weak *myBannerTextView;
+			if(myBannerView){
+				myBannerTextView = MSHookIvar<SBDefaultBannerTextView *>(myBannerView, "_textView");
 			}
-			//[self _bulletin].content.subtitle = myTitle;
-			//[self _bulletin].content.title = nil;
+			if(myTitle){
+				[myBannerTextView doodbullet:myTitle];
+				//[self _bulletin].content.subtitle = myTitle;
+				//[self _bulletin].content.title = nil;
+			}
 		}
 	}
 	
@@ -92,14 +95,12 @@
 %end
 
 %hook SBLockScreenBulletinCell
-%property NSString *savedTitle;
+%property (copy) NSString *savedTitle;
 %new
 -(void)doodlockscreen:(NSString *)title{
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
 	NSInteger lockscreen = [[prefs objectForKey:@"lockscreen"] intValue];
-	if(!self.savedTitle){
-		self.savedTitle = title;
-	}
+	self.savedTitle = title;
 	if(lockscreen == 2){
 		if(self.subtitleText != title){
 			self.subtitleText = title;
@@ -118,19 +119,22 @@
 		[self doodlockscreen:self.savedTitle];
 	}
 }
+
+- (void)prepareForReuse {
+	self.savedTitle = nil;
+	%orig;
+}
 %end
 
 %hook SBDefaultBannerTextView
-%property NSString *savedTitlebullet;
+%property (copy) NSString *savedTitlebullet;
 %new
 -(void)doodbullet:(NSString *)title{
 	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
 	NSInteger banners = [[prefs objectForKey:@"banners"] intValue];
 	bool disablebundled = [[prefs objectForKey:@"disablebundled"] boolValue];
 	
-	if(!self.savedTitlebullet){
-		self.savedTitlebullet = title;
-	}
+	self.savedTitlebullet = title;
 	
 	if(disablebundled == false){
 		if(self.primaryText){
