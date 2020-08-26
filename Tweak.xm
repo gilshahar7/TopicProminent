@@ -1,4 +1,5 @@
 #define PLIST_PATH @"/var/mobile/Library/Preferences/com.gilshahar7.topicprominentprefs.plist"
+#import "notify.h"
 
 @interface SBLockScreenBulletinCell
 @property (nonatomic, strong) NSString *primaryText;
@@ -8,7 +9,7 @@
 -(void)doodlockscreen:(NSString *)title;
 @end
 
-@interface SBLockScreenNotificationListView
+@interface SBLockScreenNotificationListView : UIView
 -(NSArray *)visibleNotificationCells;
 -(id)_activeBulletinForIndexPath:(id)arg1 ;
 -(void)tableView:(id)arg1 willDisplayCell:(id)arg2 forRowAtIndexPath:(id)arg3 ;
@@ -29,7 +30,7 @@
 -(BBBulletin *)_firstBulletin;
 @end
 
-@interface SBDefaultBannerTextView
+@interface SBDefaultBannerTextView : UIView
 @property (nonatomic, strong) NSString *primaryText;
 @property (nonatomic, strong) NSString *subtitleText;
 @property (nonatomic, strong) NSString *secondaryText;
@@ -37,13 +38,13 @@
 -(void)doodbullet:(NSString *)title;
 @end
 
-@interface SBDefaultBannerView
+@interface SBDefaultBannerView : UIView
 @end
 
-@interface SBBannerContextView
+@interface SBBannerContextView : UIView
 @end
 
-@interface SBBannerContainerView
+@interface SBBannerContainerView : UIView
 @property (nonatomic, strong) SBBannerContextView *bannerView;
 @end
 
@@ -52,9 +53,19 @@
 -(BBBulletin *)_bulletin;
 @end
 
+static NSInteger lockscreen;
+static NSInteger banners;
+static bool disablebundled;
+static void _updatePrefs() {
+    NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
+    lockscreen = [[prefs objectForKey:@"lockscreen"] intValue];
+    banners = [[prefs objectForKey:@"banners"] intValue];
+    disablebundled = [[prefs objectForKey:@"disablebundled"] boolValue];
+}
+
 %hook SBLockScreenNotificationListView
 -(void)tableView:(id)arg1 willDisplayCell:(id)arg2 forRowAtIndexPath:(id)arg3 {
-	%orig;
+    %orig;
 	if ([arg2 isKindOfClass: %c(SBLockScreenBulletinCell)]) {
 		SBLockScreenBulletinCell *myCell = (SBLockScreenBulletinCell*)arg2;
 		BBBulletin *bulletin = [self _activeBulletinForIndexPath:arg3];
@@ -73,7 +84,7 @@
 
 %hook SBBannerContainerViewController
 -(void)setBannerContext:(id)arg1 withReplaceReason:(int)arg2 completion:(id)arg3 {
-	%orig;
+    %orig;
 	if(![[self _bulletin].section isEqualToString:@"com.apple.MobileSMS"] && [self _bulletin] && self.view.bannerView) {
 		NSString __weak *contentTitle = [self _bulletin].content.title;
 		if (contentTitle) {
@@ -85,6 +96,9 @@
 			}
 			if(myTitle){
 				[myBannerTextView doodbullet:myTitle];
+                if (UIDevice.currentDevice.systemVersion.floatValue < 9.0) {
+                    [myBannerTextView layoutSubviews];
+                }
 				//[self _bulletin].content.subtitle = myTitle;
 				//[self _bulletin].content.title = nil;
 			}
@@ -98,10 +112,8 @@
 %property (copy) NSString *savedTitle;
 %new
 -(void)doodlockscreen:(NSString *)title{
-	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
-	NSInteger lockscreen = [[prefs objectForKey:@"lockscreen"] intValue];
 	self.savedTitle = title;
-	if(lockscreen == 2){
+    if(UIDevice.currentDevice.systemVersion.floatValue >= 9.0 && lockscreen == 2){
 		if(self.subtitleText != title){
 			self.subtitleText = title;
 		}
@@ -114,15 +126,15 @@
 }
 
 -(void)layoutSubviews{
-	%orig;
+    %orig;
 	if(self.savedTitle){
 		[self doodlockscreen:self.savedTitle];
 	}
 }
 
 - (void)prepareForReuse {
+    %orig;
 	self.savedTitle = nil;
-	%orig;
 }
 %end
 
@@ -130,10 +142,6 @@
 %property (copy) NSString *savedTitlebullet;
 %new
 -(void)doodbullet:(NSString *)title{
-	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:PLIST_PATH];
-	NSInteger banners = [[prefs objectForKey:@"banners"] intValue];
-	bool disablebundled = [[prefs objectForKey:@"disablebundled"] boolValue];
-	
 	self.savedTitlebullet = title;
 	
 	if(disablebundled == false){
@@ -144,7 +152,7 @@
 		}
 	}
 	
-	if(banners == 2){
+    if(UIDevice.currentDevice.systemVersion.floatValue >= 9.0 && banners == 2){
 		if(self.subtitleText != title){
 			self.subtitleText = title;
 		}
@@ -157,9 +165,17 @@
 }
 
 -(void)layoutSubviews{
-	%orig;
+    %orig;
 	if(self.savedTitlebullet){
 		[self doodbullet:self.savedTitlebullet];
 	}
 }
 %end
+
+%ctor {
+    int token;
+    notify_register_dispatch("com.gilshahar7.topicprominentprefs.settingschanged", &token, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(int token) {
+        _updatePrefs();
+    });
+    _updatePrefs();
+}
